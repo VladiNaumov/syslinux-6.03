@@ -1,5 +1,3 @@
-#include "adjust.h"
-
 	.code16
 	.text
 
