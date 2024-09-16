@@ -150,7 +150,8 @@ _spec_end	equ $
 _spec_len	equ _spec_end - _spec_start
 
 		section .init
-;;
+		
+;;  2. ###################################################
 ;; Primary entry point.  Because BIOSes are buggy, we only load the first
 ;; CD-ROM sector (2K) of the file, so the number one priority is actually
 ;; loading the rest.
@@ -320,6 +321,7 @@ initial_csum:	xor edi,edi
 %endif
 
 found_drive:
+		;  3. ###################################################
 		; Alright, we have found the drive.  Now, try to find the
 		; boot file itself.  If we have a boot info table, life is
 		; good; if not, we have to make some assumptions, and try
@@ -472,7 +474,9 @@ integrity_ok:
 		call writemsg
 %endif
 		jmp all_read			; Jump to main code
-
+		
+		
+;  4 ###################################################
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Start of BrokenAwardHack --- 10-nov-2002           Knut_Petersen@t-online.de
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -591,6 +595,8 @@ award_found:	mov	eax,[es:di+0eh]		; load possible int 13 addr
 %endif						;
 		jmp	found_drive		; and leave error recovery code
 						;
+						
+;  5. ###################################################
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; End of BrokenAwardHack ----            10-nov-2002 Knut_Petersen@t-online.de
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -703,7 +709,7 @@ crlf_early:	push ax
 		pop ax
 		ret
 
-;
+;;  6. ###################################################
 ; Write a character to the screen.  There is a more "sophisticated"
 ; version of this in the subsequent code, so we patch the pointer
 ; when appropriate.
@@ -941,7 +947,7 @@ maxtrans:
 
 %endif
 
-;
+;;;  7. ###################################################
 ; This is the variant we use for real CD-ROMs:
 ; LBA, 2K sectors, some special error handling.
 ;
@@ -1020,7 +1026,7 @@ xint13:		mov byte [RetryCount],retry_count
 		call crlf_early
 		; Fall through to kaboom
 
-;
+
 ; kaboom: write a message and bail out.  Wait for a user keypress,
 ;	  then do a hard reboot.
 ;
@@ -1035,6 +1041,7 @@ kaboom:
 		mov word [BIOS_magic],0	; Cold reboot
 		jmp 0F000h:0FFF0h	; Reset vector address
 
+;  8. ###################################################
 ; -----------------------------------------------------------------------------
 ;  Common modules needed in the first sector
 ; -----------------------------------------------------------------------------
