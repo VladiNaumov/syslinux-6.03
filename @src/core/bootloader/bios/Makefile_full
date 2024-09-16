@@ -1,0 +1,82 @@
+# Определение переменных
+AS = nasm
+CC = gcc
+LD = ld
+DD = dd
+RM = rm -f
+MKDIR = mkdir -p
+
+# Опции
+ASFLAGS = -f bin
+CFLAGS = -I/path/to/headers
+LDFLAGS =
+
+# Файлы
+MBR_SRC = mbr_.s
+LDSLINUX_SRC = ldlinux_.asm
+SYSOLINUX_SRC = syslinux_.c
+MBR_BIN = mbr.bin
+LDSLINUX_BIN = ldlinux.bin
+SYSOLINUX_BIN = syslinux
+IMAGE = boot.img
+
+# Основные цели
+all: $(MBR_BIN) $(LDSLINUX_BIN) $(SYSOLINUX_BIN) $(IMAGE)
+
+# Сборка ассемблерных файлов
+$(MBR_BIN): $(MBR_SRC)
+	$(AS) $(ASFLAGS) -o $@ $(MBR_SRC)
+
+$(LDSLINUX_BIN): $(LDSLINUX_SRC)
+	$(AS) $(ASFLAGS) -o $@ $(LDSLINUX_SRC)
+
+# Сборка C-файла
+$(SYSOLINUX_BIN): $(SYSOLINUX_SRC)
+	$(CC) -o $(SYSOLINUX_BIN) $(SYSOLINUX_SRC) $(CFLAGS) $(LDFLAGS)
+
+# Создание образа
+$(IMAGE): $(MBR_BIN) $(LDSLINUX_BIN)
+	# Создание пустого образа
+	$(DD) if=/dev/zero of=$(IMAGE) bs=512 count=2880
+
+	# Запись MBR
+	$(DD) if=$(MBR_BIN) of=$(IMAGE) bs=512 count=1 conv=notrunc
+
+	# Запись ldlinux
+	$(DD) if=$(LDSLINUX_BIN) of=$(IMAGE) bs=512 seek=1 conv=notrunc
+
+	# Создание файловой системы и запись syslinux (если требуется)
+	# В примере не учитывается, где именно требуется запись syslinux.c32
+	# Поэтому это может потребовать дополнительных шагов, если syslinux.c32 нужно записать
+	# в специальное место
+
+clean:
+	$(RM) $(MBR_BIN) $(LDSLINUX_BIN) $(SYSOLINUX_BIN) $(IMAGE)
+
+.PHONY: all clean
+
+
+
+#Объяснение Makefile:
+#Переменные:
+
+#AS, CC, LD, DD, RM, MKDIR: Утилиты, используемые в процессе сборки.
+#ASFLAGS, CFLAGS, LDFLAGS: Опции для ассемблера и компилятора.
+#MBR_SRC, LDSLINUX_SRC, SYSOLINUX_SRC: Исходные файлы.
+#MBR_BIN, LDSLINUX_BIN, SYSOLINUX_BIN: Собранные бинарные файлы.
+#IMAGE: Образ диска.
+#Цели:
+
+#all: Основная цель для сборки всех файлов и создания образа.
+#$(MBR_BIN), $(LDSLINUX_BIN): Сборка ассемблерных файлов.
+#$(SYSOLINUX_BIN): Сборка C-файла.
+#$(IMAGE): Создание и запись в образ диска.
+#clean: Удаление всех созданных файлов.
+#Правила:
+
+#Компиляция и сборка каждого из файлов.
+#Создание пустого образа и запись в него бинарных файлов.
+#Примечания:
+#Убедитесь, что пути в CFLAGS и другие переменные правильно настроены для вашего окружения.
+#Если вы используете специфичные для системы библиотеки или заголовочные файлы, обновите пути в CFLAGS и LDFLAGS.
+#Проконтролируйте корректность команд записи в образ, так как специфика образа и расположение файлов могут варьироваться в зависимости от требований вашего проекта.
